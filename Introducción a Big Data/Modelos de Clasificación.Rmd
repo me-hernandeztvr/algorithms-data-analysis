@@ -1,0 +1,61 @@
+---
+title: 'Introducción a Big Data: Modelos de Clasificación'
+author: "me-hernandeztvr"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Modelos de Detección de Fraude
+Estos modelos clasifican transacciones como fraudulentas o no fraudulentas.
+Técnicas: Máquinas de soporte vectorial (SVM), redes neuronales, algoritmos de vecino más cercano (k-NN).
+class = is_fraud
+```{r}
+# Instalar y cargar los paquetes necesarios
+#install.packages("randomForest")
+#install.packages("caret")
+library(randomForest)
+library(caret)
+
+# Cargar el archivo fraud_data.csv
+data <- read.csv("fraud_data.csv")
+
+# Verificar la estructura del dataframe
+str(data)
+
+# Contar los valores únicos en la columna Class
+table(data$Class)
+
+# Asegurarse de que la variable Class sea un factor
+data$Class <- as.factor(data$Class)
+
+# Crear la partición de los datos
+set.seed(123)
+trainIndex <- createDataPartition(data$Class, p = 0.8, list = FALSE, times = 1)
+trainData <- data[trainIndex, ]
+testData <- data[-trainIndex, ]
+
+# Mostrar el número de observaciones en cada partición
+cat("Número de observaciones en el conjunto de entrenamiento:", nrow(trainData), "\n")
+cat("Número de observaciones en el conjunto de prueba:", nrow(testData), "\n")
+
+# Entrenar el modelo de bosque aleatorio
+model <- randomForest(Class ~ ., data = trainData, ntree = 100, importance = TRUE)
+
+# Realizar predicciones en el conjunto de prueba
+predictions <- predict(model, testData)
+
+# Evaluar el rendimiento del modelo
+confusionMatrix <- confusionMatrix(predictions, testData$Class)
+
+# Mostrar la matriz de confusión
+print(confusionMatrix$table)
+
+# Mostrar las métricas de evaluación
+print(confusionMatrix$overall)
+print(confusionMatrix$byClass)
+
+```
+

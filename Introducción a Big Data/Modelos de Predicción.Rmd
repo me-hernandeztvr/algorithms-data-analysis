@@ -1,0 +1,51 @@
+---
+title: 'Introducción a Big Data: Modelos de Predicción'
+author: "me-hernandeztvr"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Modelos de Predicción de Riesgo de Crédito
+Estos modelos predicen la probabilidad de que un cliente incumpla con el pago de un préstamo o crédito.
+Técnicas: Regresión logística, árboles de decisión, bosques aleatorios, redes neuronales.
+
+```{r, warning=FALSE}
+#install.packages("caret")
+library(caret)
+# Cargar datos de ejemplo
+data(GermanCredit)
+# Dividir en conjunto de entrenamiento y prueba
+set.seed(123)
+trainIndex <- createDataPartition(GermanCredit$Class, p = .8, 
+                                  list = FALSE, 
+                                  times = 1)
+GermanTrain <- GermanCredit[ trainIndex,]
+GermanTest  <- GermanCredit[-trainIndex,]
+# Modelo de regresión logística
+model <- train(Class ~ ., data = GermanTrain, method = "glm", family = "binomial")
+# Predicciones
+predictions <- predict(model, GermanTest)
+# Matriz de confusión
+confusionMatrix(predictions, GermanTest$Class)
+
+```
+
+## Modelos de Predicción de Precios de Activos
+Estos modelos predicen los precios futuros de activos financieros como acciones, bonos o criptomonedas.
+Técnicas: Series de tiempo (ARIMA, GARCH), redes neuronales recurrentes (RNN, LSTM).
+
+```{r}
+library(quantmod)
+library(forecast)
+# Obtener datos históricos
+getSymbols("AAPL", src = "yahoo")
+# Modelo ARIMA
+model <- auto.arima(Cl(AAPL))
+# Predicciones
+forecast <- forecast(model, h = 30)
+plot(forecast)
+```
+

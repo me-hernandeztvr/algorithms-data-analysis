@@ -1,0 +1,51 @@
+---
+title: 'Introducción a Big Data: Modelos de Optimización'
+author: "me-hernandeztvr"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Modelos de Optimización de Portafolio
+Estos modelos optimizan la combinación de activos en un portafolio para maximizar el retorno esperado y minimizar el riesgo.
+Técnicas: Frontera eficiente, optimización convexa, algoritmos genéticos.
+
+```{r, warning=FALSE}
+# Instalar paquetes necesarios
+#install.packages("ROI")
+#install.packages("ROI.plugin.glpk")
+#install.packages("ROI.plugin.quadprog")
+#install.packages("quantmod")
+#install.packages("PerformanceAnalytics")
+#install.packages("PortfolioAnalytics")
+
+# Cargar los paquetes necesarios
+library(ROI)
+library(ROI.plugin.glpk)
+library(ROI.plugin.quadprog)
+library(quantmod)
+library(PerformanceAnalytics)
+library(PortfolioAnalytics)
+
+# Obtener datos de precios de ejemplo
+symbols <- c("AAPL", "MSFT", "GOOG")
+getSymbols(symbols, src = 'yahoo', from = "2020-01-01", to = "2022-01-01")
+prices <- do.call(merge, lapply(symbols, function(x) Cl(get(x))))
+returns <- na.omit(ROC(prices))
+
+# Especificar restricciones de portafolio
+portfolio <- portfolio.spec(assets = colnames(returns))
+portfolio <- add.constraint(portfolio, type = "full_investment")
+portfolio <- add.constraint(portfolio, type = "box", min = 0.1, max = 0.6)
+portfolio <- add.objective(portfolio, type = "return", name = "mean")
+portfolio <- add.objective(portfolio, type = "risk", name = "StdDev")
+
+# Optimizar portafolio
+opt_portfolio <- optimize.portfolio(R = returns, portfolio = portfolio, optimize_method = "ROI")
+print(opt_portfolio)
+
+
+```
+
