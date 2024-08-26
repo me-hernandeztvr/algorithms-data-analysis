@@ -1,0 +1,56 @@
+---
+title: 'R: Análisis y Limpieza de Datos'
+author: "me-hernandeztvr"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Análisis y Limpieza de Datos
+
+# Cargar las librerías necesarias
+```{r}
+library(dplyr)
+```
+
+# Crear un data frame (ejemplo)
+```{r}
+data <- data.frame(
+  Producto = c("A", "B", "C", "D"),
+  Precio = c(100, 200, NA, 400),
+  Ventas = c(30, 50, 40, NA)
+)
+```
+
+# Revisar la estructura del data frame
+```{r}
+str(data) # Muestra el tipo de datos y la estructura
+```
+
+# Verificar si hay missing values y reemplazar por la media
+```{r}
+data$Precio <- ifelse(is.na(data$Precio), mean(data$Precio, na.rm = TRUE), data$Precio)
+data$Ventas <- ifelse(is.na(data$Ventas), mean(data$Ventas, na.rm = TRUE), data$Ventas)
+```
+
+# Seleccionar ciertas columnas y agrupar los datos
+```{r}
+data_grouped <- data %>%
+  select(Producto, Precio) %>% # Selecciona solo las columnas Producto y Precio
+  group_by(Producto) %>% # Agrupa por Producto
+  summarise(Total_Precio = sum(Precio)) # Resume el total del precio por producto
+```
+
+# Crear una nueva variable basado en una condición
+```{r}
+data <- data %>%
+  mutate(Alto_Costo = ifelse(Precio > 150, "Sí", "No")) # Nueva columna indica si el precio es alto
+```
+
+# Mostrar el data frame final
+```{r}
+print(data)
+#data
+```

@@ -1,0 +1,61 @@
+---
+title: 'R: Manipulación y Resumen de Datos'
+author: "me-hernandeztvr"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R: Manipulación y Resumen de Datos
+
+# Cargar las librerías necesarias
+```{r}
+library(dplyr)
+```
+
+# Crear un data frame de ejemplo
+```{r}
+data <- data.frame(
+  Categoria = c("X", "Y", "X", "Z"),
+  Cantidad = c(10, 20, 15, 30),
+  Precio = c(50, NA, 100, 200)
+)
+```
+
+# Revisar la estructura del data frame
+```{r}
+str(data) # Muestra el tipo de datos y la estructura
+```
+
+
+# Verificar si hay missing values y reemplazar por la media
+```{r}
+data$Precio <- ifelse(is.na(data$Precio), mean(data$Precio, na.rm = TRUE), data$Precio)
+```
+
+# Agrupar y contar datos por categoría
+```{r}
+data_grouped <- data %>%
+  group_by(Categoria) %>%
+  summarise(Total_Ventas = sum(Cantidad * Precio)) # Calcula el total de ventas por categoría
+```
+
+# Crear una nueva columna con mutate
+```{r}
+data <- data %>%
+  mutate(Costo_Total = Cantidad * Precio) # Calcula el costo total por línea
+```
+
+# Aplicar una condición con ifelse
+```{r}
+data <- data %>%
+  mutate(Alto_Valor = ifelse(Costo_Total > 500, "Sí", "No")) # Indica si el costo total es alto
+```
+
+# Mostrar el data frame final
+```{r}
+print(data)
+#data
+```

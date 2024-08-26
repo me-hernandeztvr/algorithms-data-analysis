@@ -1,0 +1,75 @@
+---
+title: 'R: Limpieza y Análisis de Datos con excel'
+author: "me-hernandeztvr"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Limpieza y Análisis de Datos con excel
+
+# Cargar las librerías necesarias
+```{r}
+library(dplyr)
+library(readxl)
+```
+
+# Leer el archivo Excel (Asegúrate de que la ruta del archivo es correcta)
+```{r}
+data <- readxl::read_excel("credit_semioriginal.xlsx", sheet = "Sheet 1")
+```
+
+# Renombrar algunas columnas para hacerlas más entendibles
+```{r}
+data <- data %>%
+  rename(
+    Monto_Prestamo = loan_amnt,
+    Tasa_Interes = int_rate,
+    Plazo = term,
+    Cuota = installment
+  )
+```
+
+# Revisar la estructura del data frame
+```{r}
+str(data) # Muestra el tipo de datos y la estructura
+```
+
+# Filtrar los préstamos de 36 meses y reemplazar missing values en Cuota por la media
+```{r}
+#summary(data)
+
+# Eliminar columnas con más del 50% de valores NA
+data_clean <- data %>%
+  select_if(~mean(is.na(.)) < 0.3)
+
+data_filtrada <- data_clean %>%
+  filter(Plazo == "36 months") %>% # Filtra los préstamos con un plazo de 36 meses
+  mutate(Cuota = ifelse(is.na(Cuota), mean(Cuota, na.rm = TRUE), Cuota))
+```
+
+# Crear un resumen agrupado por Tasa de Interes y obtener el promedio de Cuota
+```{r}
+resumen <- data_filtrada %>%
+  group_by(Tasa_Interes) %>%
+  summarise(Promedio_Cuota = mean(Cuota, na.rm = TRUE))
+```
+
+# Generar una nueva columna para clasificar las tasas de interés
+```{r}
+data_filtrada <- data_filtrada %>%
+  mutate(Tasa_Alta = ifelse(Tasa_Interes > 15, "Alta", "Baja")) # Clasifica como alta si la tasa es mayor al 15%
+
+print(data_filtrada %>% select(Tasa_Interes, Tasa_Alta))
+
+data_filtrada <- data_filtrada %>%
+  select(everything(), Tasa_Interes, Tasa_Alta) %>%
+  relocate(Tasa_Alta, .after = Tasa_Interes) # Muevo la columna de Tasa_Alta para tenerla cerca de mi columna de Tasa_Interes
+```
+
+# Mostrar el data frame final
+```{r}
+print(data_filtrada)
+```

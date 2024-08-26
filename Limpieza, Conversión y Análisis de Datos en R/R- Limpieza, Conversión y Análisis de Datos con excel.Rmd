@@ -1,0 +1,91 @@
+---
+title: 'R: Limpieza, Conversión y Análisis de Datos'
+author: "me-hernandeztvr"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Limpieza, Conversión y Análisis de Datos
+
+# Cargar las librerías necesarias
+```{r}
+library(dplyr)
+library(readxl)
+```
+
+
+# Leer el archivo Excel (Asegúrate de que la ruta del archivo es correcta)
+
+```{r}
+data <- readxl::read_excel("credit_semioriginal.xlsx", sheet = "Sheet 1")
+```
+
+
+# Renombrar algunas columnas para hacerlas más entendibles
+```{r}
+data <- data %>%
+  rename(
+    Monto_Prestamo = loan_amnt,
+    Tasa_Interes = int_rate,
+    Plazo = term,
+    Grado_Credito = grade
+  )
+```
+
+# Revisar la estructura del data frame
+```{r}
+str(data) # Muestra el tipo de datos y la estructura
+```
+
+# Convertir la columna 'Plazo' de "36 months"/"60 months" a números 36 y 60
+```{r}
+data <- data %>%
+  mutate(Plazo = as.numeric(gsub(" months", "", Plazo)))
+```
+  
+# Convertir la columna 'Grado_Credito' a una escala numérica (A=1, B=2, C=3, etc.)
+```{r}
+grado_map <- setNames(1:7, LETTERS[1:7])
+data <- data %>%
+  mutate(Grado_Credito_Num = grado_map[Grado_Credito])
+```
+
+# Filtrar datos y reemplazar missing values en Tasa de Interes por la media
+```{r}
+data_filtrada <- data %>%
+  filter(!is.na(Tasa_Interes)) %>% # Filtra filas con tasas de interés no nulas
+  mutate(Tasa_Interes = ifelse(is.na(Tasa_Interes), mean(Tasa_Interes, na.rm = TRUE), Tasa_Interes))
+```
+- Conversión de valores de caracteres a numéricos: Se convierte la columna Plazo de "36 months"/"60 months" a valores numéricos (36 y 60). 
+- Además, se convierte la columna Grado_Credito a una escala numérica basada en las letras (A=1, B=2, etc.).
+- Manejo de valores faltantes: Se filtran las filas con tasas de interés no nulas y se reemplazan valores faltantes en la columna Tasa_Interes con la media de la columna.
+- Clasificación: Se clasifica la tasa de interés en alta (1) o baja (0), utilizando un umbral del 15%.
+
+
+# Crear un resumen agrupado por Grado de Crédito y calcular el promedio del monto del préstamo
+```{r}
+resumen <- data_filtrada %>%
+  group_by(Grado_Credito_Num) %>%
+  summarise(Promedio_Prestamo = mean(Monto_Prestamo, na.rm = TRUE))
+```
+- Agrupación y resumen: Se agrupa por el nuevo valor numérico de Grado_Credito y se calcula el promedio del monto del préstamo para cada grupo.
+
+# Clasificar los préstamos en función de la tasa de interés (alta o baja)
+```{r}
+data_filtrada <- data_filtrada %>%
+  mutate(Tasa_Alta = ifelse(Tasa_Interes > 15, 1, 0)) # 1 = Alta, 0 = Baja
+
+print(data_filtrada %>% select(Tasa_Interes, Tasa_Alta))
+
+data_filtrada <- data_filtrada %>%
+  select(everything(), Tasa_Interes, Tasa_Alta) %>%
+  relocate(Tasa_Alta, .after = Tasa_Interes) # Muevo la columna de Tasa_Alta para tenerla cerca de mi columna de Tasa_Interes
+```
+
+# Mostrar el data frame final
+```{r}
+print(data_filtrada)
+```
