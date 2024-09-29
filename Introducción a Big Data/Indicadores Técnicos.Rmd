@@ -1,0 +1,54 @@
+---
+title: "Indicadores Técnicos"
+author: "me-hernandeztvr"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+# Instalar y cargar las librerías necesarias
+#install.packages("quantmod")
+library(quantmod)
+
+# Obtener los datos de Apple (AAPL) desde Yahoo Finance
+getSymbols("AAPL", src = "yahoo", from = "2020-01-01", to = Sys.Date())
+
+# Usar solo los precios de cierre para todas las operaciones
+AAPL_Close <- Cl(AAPL)
+
+# Crear las medias móviles de 50 y 200 días
+SMA50 <- SMA(AAPL_Close, n = 50)
+SMA200 <- SMA(AAPL_Close, n = 200)
+
+# Calcular el RSI con un período de 14 días
+RSI_14 <- RSI(AAPL_Close, n = 14)
+
+# Calcular el MACD (12, 26, 9 son los períodos estándar)
+macd <- MACD(AAPL_Close, nFast = 12, nSlow = 26, nSig = 9)
+MACD_Line <- macd[, 1]
+Signal_Line <- macd[, 2]
+
+# Calcular las Bandas de Bollinger (20 días por defecto) usando solo el precio de cierre
+bb <- BBands(AAPL_Close, n = 20)
+BBUpper <- bb[, "up"]
+BBMiddle <- bb[, "mavg"]
+BBLower <- bb[, "dn"]
+
+# Configurar el gráfico principal con las Bandas de Bollinger y las medias móviles
+chartSeries(AAPL_Close, theme = chartTheme("white"), 
+            name = "AAPL con Indicadores Técnicos", subset = 'last 6 months')
+addSMA(n = 50, col = "blue")
+addSMA(n = 200, col = "red")
+addBBands(n = 20, sd = 2)
+
+# Añadir el RSI sin argumentos adicionales
+addTA(RSI_14, col = "purple", legend = "RSI 14", on = NA)
+
+# Añadir el MACD sin el tipo de histograma
+addTA(MACD_Line, col = "green", legend = "MACD", on = NA)
+addTA(Signal_Line, col = "red", legend = "Signal Line", on = NA)
+```
+
